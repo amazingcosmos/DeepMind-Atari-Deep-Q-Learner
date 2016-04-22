@@ -12,6 +12,7 @@ local nql = torch.class('dqn.NeuralQLearner')
 
 
 function nql:__init(args)
+    print("nql:__init")
     self.state_dim  = args.state_dim -- State dimensionality.
     self.actions    = args.actions
     self.n_actions  = #self.actions
@@ -74,9 +75,11 @@ function nql:__init(args)
     local msg, err = pcall(require, self.network)
     if not msg then
         -- try to load saved agent
+        print('try to load saved agent ' .. self.network)
         local err_msg, exp = pcall(torch.load, self.network)
         if not err_msg then
             error("Could not find network file ")
+            error(err_msg)
         end
         if self.best and exp.best_model then
             self.network = exp.best_model
@@ -413,6 +416,7 @@ end
 
 
 function nql:createNetwork()
+    print("nql:createNetwork")
     local n_hid = 128
     local mlp = nn.Sequential()
     mlp:add(nn.Reshape(self.hist_len*self.ncols*self.state_dim))
@@ -427,6 +431,7 @@ end
 
 
 function nql:_loadNet()
+    print("nql:_loadNet")
     local net = self.network
     if self.gpu then
         net:cuda()
