@@ -171,6 +171,7 @@ end
 
 
 function nql:preprocess(rawstate)
+    -- liyi: reshape the raw game screen shot into a gray image and the size is 84*84.
     if self.preproc then
         return self.preproc:forward(rawstate:float())
                     :clone():reshape(self.state_dim)
@@ -282,6 +283,7 @@ end
 
 
 function nql:sample_validation_data()
+    -- liyi: randomly sample valid_size number of samples from replay memory.
     local s, a, r, s2, term = self.transitions:sample(self.valid_size)
     self.valid_s    = s:clone()
     self.valid_a    = a:clone()
@@ -301,22 +303,32 @@ end
 
 
 function nql:perceive(reward, rawstate, terminal, testing, testing_ep)
+    --[[liyi
+    rawstate: screen snapshot.
+    testing: Bool, weather using test mode.
+    In test mode, the Q-Learning network won't changed.
+    After preprocess, the state changed into a gray 84*84 image.
+    ]]
     -- Preprocess state (will be set to nil if terminal)
     local state = self:preprocess(rawstate):float()
     local curState
 
+    -- liyi: set reward between max_reward and min_reward.
     if self.max_reward then
         reward = math.min(reward, self.max_reward)
     end
     if self.min_reward then
         reward = math.max(reward, self.min_reward)
     end
+    -- liyi: record the max reward.
     if self.rescale_r then
         self.r_max = math.max(self.r_max, reward)
     end
 
+    -- liyi: add state and terminal information to the table for storing the last histLen state.
     self.transitions:add_recent_state(state, terminal)
 
+    -- liyi: get hist_len(usually 4) of the most recently frames. 
     local currentFullState = self.transitions:get_recent()
 
     --Store transition s, a, r, s'
@@ -325,10 +337,13 @@ function nql:perceive(reward, rawstate, terminal, testing, testing_ep)
                              self.lastTerminal, priority)
     end
 
+    -- liyi: at the first step after learn_start, 
+    -- set the valid data as sampled data from replay memory.
     if self.numSteps == self.learn_start+1 and not testing then
         self:sample_validation_data()
     end
 
+    -- liyi: get the recent state frames.
     curState= self.transitions:get_recent()
     curState = curState:resize(1, unpack(self.input_dims))
 
@@ -338,6 +353,7 @@ function nql:perceive(reward, rawstate, terminal, testing, testing_ep)
         actionIndex = self:eGreedy(curState, testing_ep)
     end
 
+    -- liyi: store the selected action into recent_action table.
     self.transitions:add_recent_action(actionIndex)
 
     --Do some Q-learning updates
@@ -369,6 +385,7 @@ end
 
 
 function nql:eGreedy(state, testing_ep)
+    -- liyi: count the annealing ep.
     self.ep = testing_ep or (self.ep_end +
                 math.max(0, (self.ep_start - self.ep_end) * (self.ep_endt -
                 math.max(0, self.numSteps - self.learn_start))/self.ep_endt))
@@ -441,8 +458,7 @@ function nql:_loadNet()
     return net
 end
 
--- liyi 2016.04.25
--- this function is not called, it's a useless code?
+-- liyi: this function is not called, it's a useless code?
 function nql:init(arg)
     self.actions = arg.actions
     self.n_actions = #self.actions

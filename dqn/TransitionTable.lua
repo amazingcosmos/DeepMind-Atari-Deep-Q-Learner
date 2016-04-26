@@ -51,6 +51,7 @@ function trans:__init(args)
         end
     end
 
+    -- liyi: build up the replay memory.
     self.s = torch.ByteTensor(self.maxSize, self.stateDim):fill(0)
     self.a = torch.LongTensor(self.maxSize):fill(0)
     self.r = torch.zeros(self.maxSize)
@@ -145,6 +146,7 @@ end
 
 
 function trans:sample(batch_size)
+    -- liyi: check the buffer.
     local batch_size = batch_size or 1
     assert(batch_size < self.bufferSize)
 
@@ -169,6 +171,7 @@ end
 
 
 function trans:concatFrames(index, use_recent)
+    -- liyi: return hist_len(usually 4) of the most recently frames.
     if use_recent then
         s, t = self.recent_s, self.recent_t
     else
@@ -261,6 +264,7 @@ end
 
 
 function trans:get(index)
+    -- liyi: get s, a, r, s2, t from replay memory at index.
     local s = self:concatFrames(index)
     local s2 = self:concatFrames(index+1)
     local ar_index = index+self.recentMemSize-1
@@ -270,6 +274,10 @@ end
 
 
 function trans:add(s, a, r, term)
+    --[[By liyi 2016.04.26
+    Add the tuple <s, a, r, term> into replay memory, which's size is 100000.
+    The replay memory keeps the most recently transition.
+    ]]
     assert(s, 'State cannot be nil')
     assert(a, 'Action cannot be nil')
     assert(r, 'Reward cannot be nil')

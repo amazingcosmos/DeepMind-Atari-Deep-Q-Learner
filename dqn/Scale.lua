@@ -7,6 +7,7 @@ See LICENSE file for full terms of limited license.
 require "nn"
 require "image"
 
+-- create a new torch class into package nn.
 local scale = torch.class('nn.Scale', 'nn.Module')
 
 
@@ -16,6 +17,7 @@ function scale:__init(height, width)
 end
 
 function scale:forward(x)
+    -- get the gray image and reshape.
     local x = x
     if x:dim() > 3 then
         x = x[1]

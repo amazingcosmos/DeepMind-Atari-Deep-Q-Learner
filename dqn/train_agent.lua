@@ -76,6 +76,7 @@ local nepisodes
 local episode_reward
 
 local screen, reward, terminal = game_env:getState()
+-- liyi: the screen is game snapshot, reward is the cumulated_reward getting by one step
 
 print("Iteration ..", step)
 local win = nil
@@ -93,6 +94,15 @@ while step < opt.steps do
             screen, reward, terminal = game_env:newGame()
         end
     end
+    -- liyi: check the content of reward and terminal
+    -- if step % 100 == 0 then
+    --     print('\nsteps:' .. step .. 'reward: ')
+    --     print(game_env._state.reward)
+    --     print('terminal: ')
+    --     print(terminal)
+    --     print('\n')
+    -- end
+
 
     -- display screen
     win = image.display({image=screen, win=win})
@@ -117,6 +127,7 @@ while step < opt.steps do
         episode_reward = 0
 
         local eval_time = sys.clock()
+        -- liyi: get the testing average reward per episode.
         for estep=1,opt.eval_steps do
             local action_index = agent:perceive(reward, screen, terminal, true, 0.05)
 
