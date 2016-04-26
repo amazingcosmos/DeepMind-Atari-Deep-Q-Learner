@@ -441,7 +441,8 @@ function nql:_loadNet()
     return net
 end
 
-
+-- liyi 2016.04.25
+-- this function is not called, it's a useless code?
 function nql:init(arg)
     self.actions = arg.actions
     self.n_actions = #self.actions

@@ -1,4 +1,5 @@
 *~
 torch
 dqn/*.t7
-gits/*
+image/*
+.tags*
